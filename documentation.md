@@ -3,9 +3,38 @@
 <img width="415" height="83" alt="изображение" src="https://github.com/user-attachments/assets/296ec4f6-6cba-4bfb-a6bb-7551ccc0a30e" />
 
 ## Table of contents
-[Business Description](https://github.com/SiriusJoker/DWH_PostgreSQL/edit/main/documentation.md#business-description)
 
-[try2](https://github.com/SiriusJoker/DWH_PostgreSQL/edit/main/documentation.md#the-second-dataset-represents-a-store-level-sales-system-enriched-with-employee-and-geographic-information-primarily-focused-on-offline-operations)
+  * [Business Description](#business-description)
+    + [Business Background](#business-background)
+    + [Problems because of poor data management](#problems-because-of-poor-data-management)
+    + [Benefits from implementing a Data Warehouse](#benefits-from-implementing-a-data-warehouse)
+    + [Datasets description](#datasets-description)
+      - [The first dataset represents a broader retail view focused on online sales.](#the-first-dataset-represents-a-broader-retail-view-focused-on-online-sales)
+        * [Product Information](#product-information)
+        * [Supplier Information](#supplier-information)
+        * [Customer Information](#customer-information)
+        * [Warehouse Information](#warehouse-information)
+        * [Promotion Campaign Information](#promotion-campaign-information)
+        * [Sales Information](#sales-information)
+      - [The second dataset represents a store-level sales system enriched with employee and geographic information, primarily focused on offline operations.](#the-second-dataset-represents-a-store-level-sales-system-enriched-with-employee-and-geographic-information--primarily-focused-on-offline-operations)
+        * [Sales Information](#sales-information-1)
+        * [Promotion Campaign Information](#promotion-campaign-information-1)
+        * [Employee Information](#employee-information)
+        * [Store Information](#store-information)
+        * [Customer Information](#customer-information-1)
+        * [Product Information](#product-information-1)
+    + [Business grain. Dimensions and Facts.](#business-grain-dimensions-and-facts)
+      - [Business Process.](#business-process)
+      - [The Grain.](#the-grain)
+      - [Dimensions.](#dimensions)
+        * [Sale process:](#sale-process-)
+        * [Delivery process:](#delivery-process-)
+      - [Facts.](#facts)
+  * [Business Layer 3NF](#business-layer-3nf)
+  * [Business Layer Dimensional Model](#business-layer-dimensional-model)
+  * [Logical Scheme](#logical-scheme)
+  * [Data Flow](#data-flow)
+  * [Fact Table Partitioning Strategy](#fact-table-partitioning-strategy)
 
 ## Business Description
 
