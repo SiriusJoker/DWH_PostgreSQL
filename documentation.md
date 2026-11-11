@@ -2,6 +2,11 @@
 
 <img width="415" height="83" alt="изображение" src="https://github.com/user-attachments/assets/296ec4f6-6cba-4bfb-a6bb-7551ccc0a30e" />
 
+## Table of contents
+[Business Description](https://github.com/SiriusJoker/DWH_PostgreSQL/edit/main/documentation.md#business-description)
+
+[try2](https://github.com/SiriusJoker/DWH_PostgreSQL/edit/main/documentation.md#the-second-dataset-represents-a-store-level-sales-system-enriched-with-employee-and-geographic-information-primarily-focused-on-offline-operations)
+
 ## Business Description
 
 ### Business Background
