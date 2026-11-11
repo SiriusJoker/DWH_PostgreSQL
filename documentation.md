@@ -375,5 +375,176 @@ __Warehouse dim.__
 |---------------|---------------------|-----------------|------------|-----------------|---------------|-----------------------|
 | 8             | Newark              | Regional Depot B | 27401     | 28081           | Sarah Wilson  | 1.224617 |
 
+__Supplier dim.__
+
+|  Column name  |  Description  |  Data type  |
+|---|---|---|
+| SupplierID | Supplier identifier | integer |
+| SupplierName | Supplier company name | varchar(50) |
+| SupplierRating | Supplier performance score | smallint |
+| ContractStartDate | Start date of supplier agreement | date |
+
+| SupplierID | SupplierName | SupplierRating | ContractStartDate |
+|---|---|---|---|
+|  3 | Prime Foods | 3 | 2025-02-19 | 
+
+__Store dim.__
+	Store dimension includes identifier and city details where the store is located.
+
+|  Column name  |  Description  |  Data type  |  
+|---|---|---|
+| Store_surr_ID | Store surrogate identifier | integer |
+| Store_src_ID | Store natural identifier | varchar(255) |
+| SalesCityID | City where store is placed identifier | integer |
+| CityName | City where store is located | varchar(50) |
+| StoreZipcode | Store postal code | varchar(9) |
+
+Store details available only from in-store data. Example
+
+| Store_surr_ID | StoreID | SalesCityID | CityName | Zipcode |
+|---------------|---------|-------------|----------|---------|
+| 12432         | 1267    | 4           | Fremont  | 20641   | 
+
+__Employee dim.__
+	Employee dimension includes identifier, name, personal details and hire date
+
+|  Column name  |  Description  |  Data type  |  
+|---|---|---|
+| Employee_surr_ID | Employee surrogate identifier | integer |
+| Employee_src_ID | Employee natural identifier | varchar(255) |
+| EmployeeFirstName | Employee First Name | varchar(25) |
+| EmployeeMiddleInitial | First letter of an employee's middle name | varchar(2) |
+| EmployeeLastName | Employee last name | varchar(25) |
+| BirthDate | Employee date of birth | timestamptz |
+| Gender | Employee gender | char(1) |
+| HireDate | Employment start date | timestamptz |
+| EmployeeSkillLevel | Indicator of an employee’s performance | varchar(6)|
+
+Employee details available only from in-store data. Example
+
+| Employee_surr_ID | Employee_src_ID | EmployeeFirstName | EmployeeMiddleInitial | EmployeeLastName | BirthDate | Gender | HireDate | EmployeeSkillLevel |
+|------------------|-----------------|-------------------|-----------------------|------------------|-----------|--------|----------|--------------------|
+| 245242           | 22              | Christine         | W                     | Palmer           | 1968-01-25 | F  | 2011-04-27 04:07:56.930 | Medium | 
+
+__Promotion dim.__
+	Promotion dimension includes promotion details, dates and campaign details
+
+|  Column name  |  Description  |  Data type  |  
+|---|---|---|
+| Promotion_surr_ID | Applied promotion surrogate identifier | integer |
+| Promotion_src_ID | Applied promotion natural identifier | varchar(255) |
+| PromotionName | Promotion name | varchar(50) |
+| Discount | Discount applied to the sale | numeric(3,2) |
+| Channel | Sales channel indicator | varchar(7) |
+| StartDate | Promotion start date | date |
+| EndDate | Promotion end date | date |
+| CampaignID | Promotion campaign identifier | integer |
+| CampaignName | Campaign name | varchar(50) |
+
+Promotion data from online and in-store data is schematically the same. Example
+
+| Promotion_surr_ID | Promotion_src_ID | PromotionName | Discount | Channel | StartDate | EndDate | CampaignID | CampaignName |
+|-------------------|------------------|---------------|----------|---------|-----------|---------|------------|--------------|
+| 2                 | 2weufh34         | Promo_2       | 0.3      | Online  | 2025-11-24 | 2025-12-23 | 5 | Loyalty Rewards | 
+
+__Addresses dim.__
+
+Includes Address and city of delivery.
+
+|  Column name  |  Description  |  Data type  |  
+|---|---|---|
+| Address_surr_ID | Address surrogate identifier | integer |
+| DeliveryAddress | Address of delivery | varchar(255) |
+| DeliveryCityID | Delivery city identifier | integer |
+| DeliveryZipcode | Delivery city postal code | varchar(9) |
+| DeliveryCityName | Name of city where product will be delivered | varchar(50) |
+
+| Address_surr_ID | DeliveryAddress | DeliveryCityID | DeliveryZipcode | DeliveryCityName |
+|-----------------|-----------------|----------------|-----------------|------------------|
+| 234   | 233 Rocky Nobel Boulevard | 9              | 6621            | Atlanta          | 
+
+__Fact sale__
+	Fact table includes an identifier, foreign keys to dimensions, product quantity, total price, sales and delivery date, and delivery cost (for online purchases). 
+
+|  Column name  |  Description  |  Data type  |  
+|---|---|---|
+| Sales_surr_ID | Sale surrogate identifier | integer |
+| Sales_src_ID | Sale natural identifier | varchar(255) |
+| SalesPersonID | Sales person identifier | integer |
+| CustomerID | Customer identifier | integer |
+| ProductID | Product identifier | integer |
+| Quantity | Quantity of product | integer |
+| TotalPrice | Total price paid for product | numeric(13,6) |
+| SalesDateID | Sales date identifier | integer |
+| TransactionNumber | Transaction code | text |
+| PromotionID | Applied promotion identifier | integer |
+| StoreID | Store identifier | integer |
+| Price | Product unit price | numeric(11,6) |
+| UnitCost | Product unit cost | numeric(11,6) |
+| Cost | Total cost for the transaction | numeric(13,6) |
+| Profit | Difference between TotalPrice and Cost | numeric(13,6) |
+| MarginPct | Profit as a percentage of TotalPrice | numeric(6,4) |
+| Discount | Discount applied to the sale | numeric(6,4) |
+| Payment type | Payment type | varchar(50) |
+| Checkout type | Checkout type | varchar(50) |
+
+Example of Fact detail from online data.
+
+| Sales_surr_ID | Sales_src_ID | CustomerID | ProductID | Quantity | TotalPrice | SalesDateID | TransactionNumber | PromotionID | Cost | Price | UnitCost | Profit | MarginPct | Discount | PaymentType |
+|---------------|--------------|------------|-----------|----------|------------|-------------|-------------------|-------------|------|-------|----------|--------|-----------|----------|-------------|
+| 20181234012   | 2018012      | 53884      | 372       | 14       | 79.15824   | 2026021  | OX1D4LVVQRC5PF6BTVVJ | 10      | 79.15824 | 6.2824 | 5.65416 | -0.0   | -0.0      | 0.1      | Paypal      |
+
+Fact detail from in-store data
+
+| Sales_surr_ID | Sales_src_ID | SalesPersonID | CustomerID | ProductID | Quantity | TotalPrice | SalesDateID | TransactionNumber | PromotionID | StoreID | Price | CheckoutType | UnitCost | Cost | Profit | MarginPct | Discount |  
+|---------------|--------------|---------------|------------|-----------|----------|------------|-------------|-------------------|-------------|---------|-------|--------------|----------|------|--------|-----------|----------|
+| 502           | 5025190      | 22            | 80308      | 271       | 21       | 1387.17306 | 202404   | DXAGNFCP8DYJ0C4VYQVP | 2           | 7041  | 73.3954 | Cashier | 62.873724 | 1320.348194 | 66.824866 | 4.817342 | 0.1 | 
+
+Fact delivery process.
+	It includes identifier, cost measure and keys to date dimension, addresses dimension and customers dimension.
+
+|  Column name  |  Description  |  Data type  |  
+|---|---|---|
+| Delivery_surr_ID | Delivery surrogate identifier | BIGINT |
+| DeliveryAddress_ID | Delivery address identifier | integer |
+| DeliveryDate_ID | Date of delivery identifier | integer |
+| DeliveryDate | Date of delivery | timestamptz |
+| DeliveryCost | Price of delivery | numeric(11,6) |
+| Customer_ID | Identifier of customer who ordered a delivery | integer |
+
+This fact table is related only to online sales.
+
+| Delivery_surr_ID | DeliveryAddress_ID | DeliveryDate_ID | DeliveryDate | DeliveryCost | Customer_ID |
+|------------------|--------------------|-----------------|--------------|--------------|-------------|
+| 234234           | 24324              | 20260326       | 2026-03-26 04:07:56.930 | 2.921884 | 34535 |
+
+Date dimension. Conformed dimension
+	
+
+|  Column name  |  Description  |  Data type  |  
+|---|---|---|
+| DateID | Surrogate date key | integer |
+| FullDate | Actual date | Date |
+| DayNumberOfMonth | Day of month (1–31) | Small int |
+| MonthNumber | Month number (1–12) | Small int |
+| MonthName | Month name | varchar(15) |
+| Year | Calendar year | Small int |
+| WeekNumberOfYear | Calendar week number | Small int |
+| QuarterNumber | Quarter (1–4) | Small int |
+| DayOfWeek | Name of day of week | varchar(10) |
+| FiscalYear | Fiscal Year | Small int |
+| FiscalQuarter | Fiscal Quarter | Small int |
+| FiscalMonth | Fiscal Month | Small int |
+| FiscalWeek | Fiscal week | Small int |
+
+| SalesDateID | FullDate | DayNumberOfMonth | MonthNumber | MonthName | Year | WeekNumberOfYear | QuarterNumber | DayOfWeek | FiscalYear | FiscalQuarter | FiscalMonth | FiscalWeek |
+|-------------|----------|------------------|-------------|-----------|------|------------------|---------------|-----------|------------|---------------|-------------|------------|
+| 202601017687687 | 2026-01-01 | 1          | 1           | January   | 2026 | 1                | 1             | monday    | 2026       | 1             | 1           | 1          |
+
+
+
+
+
+
 
 
