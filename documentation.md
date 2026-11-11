@@ -541,10 +541,110 @@ Date dimension. Conformed dimension
 |-------------|----------|------------------|-------------|-----------|------|------------------|---------------|-----------|------------|---------------|-------------|------------|
 | 202601017687687 | 2026-01-01 | 1          | 1           | January   | 2026 | 1                | 1             | monday    | 2026       | 1             | 1           | 1          |
 
+## Business Layer 3NF
 
+<img width="1545" height="1029" alt="3nf_model" src="https://github.com/user-attachments/assets/cdb0d926-c28c-42d0-8b7a-592e7f802c8e" />
 
+Business Layer 3NF was constructed by normalizing the previously described entities and events while keeping business processes in mind. All entities except Cities, Stores, Addresses,(SCD 0) and Products have SCD Type 1. The Products entity has SCD Type 2, and the source triplet is applied to all entities.
+A NOT NULL constraint was applied to all attributes except KPI attributes. It was not specified separately for primary keys because the primary key constraint already includes the rule that each key value cannot be NULL.
 
+There are 2 prefact tables Sales and Deliveries.
 
+Category and Subcategory entities were separated from Products. The Category entity has the attribute CategoryID, which can be mapped to PRODUCT_CATEGORY_SRC_ID. The Subcategory entity does not have an ID in the previously described model, but it has SubcategoryName, which serves as the natural key (PRODUCT_SUBCATEGORY_SRC_ID).
+Each category can include many subcategories, while one subcategory can be associated with only one category. Each product can belong to only one subcategory, while one subcategory can include many products.
 
+The Products entity has SCD Type 2, a composite primary key (PRODUCT_ID, START_DT), and the attributes END_DT and IS_ACTIVE to preserve history. PRODUCT_SRC_ID can be identified as ProductID from the source dataset. Business users know some products by a business code, which acts as a natural key. To support sales analytics, it is better to store this code as a descriptive attribute and preserve it through all layers. The attribute PRODUCT_CODE represents this logic.
+Each product can be associated with many sales, while each sale contains only one product.
 
+The Suppliers and Warehouses entities were also separated from Products. Suppliers and Products have a many-to-many relationship; therefore, the bridge table Suppliers_Products was introduced. SUPPLIER_SRC_ID can be identified as SupplierID from the source.
+Warehouses and Products also have a many-to-many relationship, so a bridge table was introduced. The Warehouses entity has SCD Type 1, and WAREHOUSE_SRC_ID can be identified as WarehouseID from the source.
+Each warehouse is located in one city, while each city can contain zero or one warehouse.
+SUPPLIER_PRODUCT_SRC_ID can be be defined as a combination of SupplierID and ProductID, and WAREHOUSE_PRODUCT_SRC_ID can be defined in the same way.
 
+The Sales entity has a logical relationship with Products and foreign keys to Customers, Promotions, Employees, Stores, and Deliveries. A NOT NULL constraint is applied to every attribute except Profit and Margin_Pct, which are KPI attributes. SALE_SRC_ID can be identified as SalesID from the source.
+Each sale can be associated with only one customer, while each customer can participate in many sales.
+Each sale can have zero or one promotion applied, while the same promotion can be applied to many sales.
+Each sale can be associated with zero or one employee, while each employee can be be associated with zero or many sales.
+Each sale can be associated with only one delivery.
+
+The Stores entity has a foreign key to Cities, representing the city in which the store is located. In this model, there is only one store per city. STORE_SRC_ID can be identified as StoreID from the source.
+
+The Employees entity describes employees who work in a store. Each employee can work in only one store. EMPLOYEE_SRC_ID can be identified as EmployeeID from the source.
+
+The Promotions entity describes promotions, discounts, and the period during which they are active. It has a foreign key to Campaigns because each promotion is part of a campaign. PROMOTION_SRC_ID can be identified as PromotionID from the source.
+Each promotion can be associated with only one campaign, while each campaign can be associated with many promotions.
+
+The Campaigns entity describes campaigns. CAMPAIGN_SRC_ID can be identified as CampaignID from the source.
+
+The Customers entity describes customer details. It has a foreign key to Addresses, representing the customer's residential address. CUSTOMER_SRC_ID can be identified as CustomerID from the source.
+Each customer can have only one address, while each address belongs to one city. Each city can have many addresses.
+
+The Cities entity describes a city and its ZIP code. In this data model, each city has only one associated ZIP code. CITY_SRC_ID can be identified as CityID from the offline source and as CityName from the online source.
+
+The Deliveries entity describes a delivery event. It has a foreign key to Addresses. Each delivery has only one address, while one address can be associated with many deliveries. DELIVERY_SRC_ID can be defined as a combination of delivery address, delivery date, and delivery cost.
+
+The Addresses entity describes addresses. It has a foreign key to Cities. ADDRESS_SRC_ID can be identified as DeliveryAddress and CustomerAddress from the source.
+
+## Business Layer Dimensional Model
+
+This dataset includes the entities Product, Supplier, and Warehouse. Products and Suppliers, as well as Products and Warehouses, have a many-to-many relationship. Suppliers and Warehouses are considered as properties of the Product; they describe where a product is located and from where it is sourced. To keep grain of product dimension as the version of product not product and supplier and warehouse version it was decided to separate those dimensions. Therefore bridge tables were introduced. Product dimension also includes hierarchy subcategories and categories. Sometimes business people know some of their products by some code which is a natural key, and to be able to do analytics of sales of these products it is better to store it as a descriptive attribute and keep it through all layers. Attribute product_code represents this logic. Product version can be created by product, category or subcategory changes
+
+Delivery is a separate process and has a separate fact table with dimensions Addresses and Time.
+
+City from 3NF was denormalized and now included in Customers, addresses, Products (as city of warehouse) and stores.
+
+Campaign from 3nf now included in promotions.
+
+Employee dimension include store_code which is the natural key of the store.
+
+The store is a separate dimension because of the grain of the fact. A sale happens at a specific store — a store is an attribute of the event itself, not just an attribute of the employee.Stores can also be analyzed independently of employees. In a real-world project, a Store would most likely be a conformed dimension shared by other fact tables (e.g., inventory, shipments, staff schedules). Even though this is a learning project and the Store dimension is trivial and would not introduce much redundancy into the Employee dimension, it is important to consider the bigger picture.
+
+For better readability, all IDs, source triplets, technical attributes and SCD2 attributes are highlighted in bold. Entities inside dimensions that were modeled as separate entities in other layers are highlighted with colored backgrounds. 
+
+<img width="2272" height="1030" alt="dimensional_model" src="https://github.com/user-attachments/assets/1b628d38-1f22-4549-8795-bb95af08fedb" />
+
+Measurements and metrics:
+
+- Unit Price is a measurement representing the price per standardized unit of a product ( gram, milliliter, package) before quantity scaling or discounts.
+	
+- Unit Cost is a metric representing the cost incurred by the company to produce, store, and sell one unit of product.
+	
+- Quantity is a measurement that shows the number of product units was sold in a sale.
+
+- Cost_TOT is a metric calculated as: Cost_TOT=Unit Cost×Quantity . It represents the total cost incurred to fulfill a transaction.
+
+- Price_TOT is a metric representing the final revenue from a transaction after applying quantity and any discounts: Price_TOT=(Unit Price×Quantity)−Discount
+
+- Cost_ratio is a metric showing cost efficiency: Cost_ratio = Price_TOT / Cost_TOT . Lower values indicate higher profitability; values above 1 indicate loss-making transactions.
+
+- Profit is a metric that shows the absolute gain from sale. Profit = Price_TOT – Cost_TOT
+
+- Margin_pct shows relative profitability of sale. Margin_pct=Profit / Price_TOT *100%
+
+## Logical Scheme
+
+Below is the logical model of the Data Warehouse (DWH) loading process used in the current project. The model illustrates the main layers of the ETL process, starting from the source systems and ending with the dimensional data warehouse. It also describes the logical data flow, including data extraction, staging, transformation, normalization, integration, and loading into the dimensional model for reporting and analytics.
+
+<img width="1001" height="685" alt="изображение" src="https://github.com/user-attachments/assets/26acda50-39da-4543-90b2-10f50d81c1a4" />
+
+## Data Flow
+
+The data flow model represents the complete ETL process used to load data from the source files into the data warehouse star schema. Compared to the logical schema, it provides a more detailed view of the data movement, transformations, and loading sequence.
+
+The process begins with the data sources, which consist of the original source files. The data is first loaded into the staging area, where it is stored in foreign tables and then transferred to source tables. This stage serves as a temporary landing area for validating, and preparing the raw data before further processing.
+
+From the staging area, the data is loaded into the 3NF schema, where it is standardized, and organized into normalized entities. It is loaded in specific order to preserve referential integrity. The diagram illustrates that some 3NF tables receive data from both source files, while others are populated from only one source, depending on the business rules.
+
+Finally, the normalized data is transformed and loaded into the dimensional schema, where dimension tables are populated first, followed by fact tables. Schema reflects the fact that Employee dimension stores the natural key of a store, while not integrating the store entity itself. Time dimension is populated separately with precalculated data.The star schema is optimized for analytical queries and reporting, providing an efficient structure for business intelligence and data analysis.
+
+<img width="1149" height="1121" alt="изображение" src="https://github.com/user-attachments/assets/bb14b28f-8f01-4d9f-8b85-421d235fab36" />
+
+## Fact Table Partitioning Strategy
+
+The fact tables delivery and sales are partitioned using PostgreSQL declarative range partitioning on the delivery_dt and event_dt columns accordingly. Each partition stores data for a single calendar month, while a default partition is maintained to temporarily hold rows that do not match any existing partition.
+
+Monthly partitioning was chosen because it aligns with the incremental ETL process and supports efficient management of time-based data. It enables PostgreSQL to perform partition pruning, scanning only the partitions required to satisfy a query instead of the entire fact table. This improves query performance and simplifies maintenance operations.
+
+The project implements a rolling window strategy that maintains partitions for the current month and the previous two months. As new monthly data becomes available, the oldest partition is detached from the parent table, its data is removed, and a new partition is created for the incoming month. The ETL process then loads data into each active partition individually, ensuring that only the required partitions are processed.
+
+This approach reduces the amount of data processed during incremental loads, simplifies partition maintenance, and provides a scalable solution for managing continuously growing fact table data.
